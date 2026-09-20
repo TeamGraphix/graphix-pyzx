@@ -7,18 +7,18 @@ from typing import TYPE_CHECKING, SupportsFloat
 
 import networkx as nx
 import pyzx as zx
-from pyzx.graph import Graph
-from pyzx.utils import EdgeType, FractionLike, VertexType
-
 from graphix.fundamentals import Plane
 from graphix.measurements import Measurement
 from graphix.opengraph import OpenGraph
+from pyzx.graph import Graph
+from pyzx.utils import EdgeType, FractionLike, VertexType
 
 if TYPE_CHECKING:
-    from pyzx.graph.base import BaseGraph
+    from collections.abc import Sequence
 
     from graphix.measurements import BlochMeasurement
     from graphix.parameter import ExpressionOrFloat
+    from pyzx.graph.base import BaseGraph
 
 
 def _fraction_of_angle(angle: ExpressionOrFloat) -> Fraction:
@@ -45,7 +45,7 @@ def to_pyzx_graph(og: OpenGraph[BlochMeasurement]) -> BaseGraph[int, tuple[int, 
     g = Graph()
 
     # Add vertices into the graph and set their type
-    def add_vertices(n: int, ty: VertexType) -> list[VertexType]:
+    def add_vertices(n: int, ty: VertexType) -> Sequence[VertexType]:
         verts = g.add_vertices(n)
         for vert in verts:
             g.set_type(vert, ty)

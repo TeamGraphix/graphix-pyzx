@@ -5,7 +5,7 @@ description = "Graphix plugin for importing and exporting XZ-diagrams with pyzx"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "graphix>=0.3.5",
+    "graphix>=0.4",
     "pyzx>=0.10",
 ]
 
@@ -36,5 +36,10 @@ reportUnknownVariableType = "information"
 # reportInvalidTypeVarUse is a warning by default
 reportInvalidTypeVarUse = "error"
 
-[tool.uv.sources]
-graphix = { git = "https://github.com/TeamGraphix/graphix.git" }
+[tool.pytest.ini_options]
+filterwarnings = [
+    # Filter warnings raised by pyzx (zxcalc/pyzx#518)
+    'ignore:.*invalid escape sequence.*:SyntaxWarning',
+    # Filter warnings raised by pyzx (zxcalc/pyzx#509)
+    'ignore:.*classes created inside an enum.*:DeprecationWarning',
+]

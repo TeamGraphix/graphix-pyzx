@@ -5,20 +5,17 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
-from numpy.random import PCG64, Generator
-
+import pyzx as zx
 from graphix.fundamentals import ANGLE_PI
 from graphix.random_objects import rand_circuit
 from graphix.transpiler import Circuit
-
-import pyzx as zx
+from numpy.random import PCG64, Generator
 from pyzx.generate import cliffordT as clifford_t
 
 from graphix_pyzx import from_pyzx_graph, to_pyzx_graph
 
-
 if TYPE_CHECKING:
-    from graphix import Pattern, Statevec
+    from graphix import Pattern, Statevector
     from pyzx.graph.base import BaseGraph
 
 
@@ -65,14 +62,14 @@ def test_random_clifford_t() -> None:
         assert_reconstructed_pyzx_graph_equal(g)
 
 
-def simulate_pattern(pattern: Pattern, rng: Generator) -> Statevec:
+def simulate_pattern(pattern: Pattern, rng: Generator) -> Statevector:
     pattern.remove_pauli_measurements()
     pattern.minimize_space()
-    return pattern.simulate_pattern(rng=rng)
+    return pattern.simulate(rng=rng)
 
 
 def check_round_trip(pattern: Pattern, rng: Generator, full_reduce: bool) -> bool:
-    opengraph = pattern.extract_opengraph()
+    opengraph = pattern.to_opengraph()
     zx_graph = to_pyzx_graph(opengraph.to_bloch())
     if full_reduce:
         zx_graph.normalize()
@@ -92,6 +89,7 @@ def test_random_circuit(fx_bg: PCG64, jumps: int, full_reduce: bool) -> None:
     depth = 5
     circuit = rand_circuit(nqubits, depth, rng, use_rzz=True)
     pattern = circuit.transpile().pattern
+    pattern.infer_pauli_measurements()
     assert check_round_trip(pattern, rng, full_reduce)
 
 
@@ -104,8 +102,8 @@ def test_rz(fx_rng: Generator) -> None:
     g = circ.to_graph()
     og = from_pyzx_graph(g).infer_pauli_measurements()
     pattern_zx = og.to_pattern()
-    state = pattern.simulate_pattern(rng=fx_rng)
-    state_zx = pattern_zx.simulate_pattern(rng=fx_rng)
+    state = pattern.simulate(rng=fx_rng)
+    state_zx = pattern_zx.simulate(rng=fx_rng)
     assert state_zx.isclose(state)
 
 
@@ -115,4 +113,5 @@ def test_ccx(fx_rng: Generator, full_reduce: bool) -> None:
     circuit = Circuit(3)
     circuit.ccx(0, 1, 2)
     pattern = circuit.transpile().pattern
+    pattern.infer_pauli_measurements()
     assert check_round_trip(pattern, fx_rng, full_reduce)
